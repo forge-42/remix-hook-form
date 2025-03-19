@@ -47,7 +47,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/forge42dev/remix-hook-form.git"
+    "url": "git+https://github.com/forge-42/remix-hook-form.git"
   },
   "keywords": [
     "React",
@@ -60,9 +60,9 @@
   "author": "Alem Tuzlak",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/forge42dev/remix-hook-form/issues"
+    "url": "https://github.com/forge-42/remix-hook-form/issues"
   },
-  "homepage": "https://github.com/forge42dev/remix-hook-form#readme",
+  "homepage": "https://github.com/forge-42/remix-hook-form#readme",
   "peerDependencies": {
     "react": "^18.2.0 || ^19.0.0",
     "react-dom": "^18.2.0 || ^19.0.0",
