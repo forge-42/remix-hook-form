@@ -55,6 +55,9 @@
     "react-router v7",
     "react-hook-form",
     "hooks",
+    "remix",
+    "remix react-hook-form",
+    "react-router react-hook-form",
     "forms"
   ],
   "author": "Alem Tuzlak",
