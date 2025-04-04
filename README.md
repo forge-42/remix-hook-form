@@ -32,10 +32,11 @@ npm install zod @hookform/resolvers
 
 ```ts
 import { useRemixForm, getValidatedFormData } from "remix-hook-form";
-import { Form } from "@remix-run/react";
+import { Form } from "react-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as zod from "zod";
-import { ActionFunctionArgs, json } from "@remix-run/node"; // or cloudflare/deno
+import type { Route } from "./+types/home";
+
 
 const schema = zod.object({
   name: zod.string().min(1),
@@ -46,16 +47,16 @@ type FormData = zod.infer<typeof schema>;
 
 const resolver = zodResolver(schema);
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = async ({ request }: Route.ActionArgs) => {
   const { errors, data, receivedValues: defaultValues } =
     await getValidatedFormData<FormData>(request, resolver);
   if (errors) {
     // The keys "errors" and "defaultValues" are picked up automatically by useRemixForm
-    return json({ errors, defaultValues });
+    return { errors, defaultValues };
   }
 
   // Do something with the data
-  return json(data);
+  return data;
 };
 
 export default function MyForm() {
@@ -203,14 +204,14 @@ type SchemaFormData = z.infer<typeof formDataZodSchema>;
 
 const resolver = zodResolver(formDataZodSchema);
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = async ({ request }: Route.ActionArgs) => {
   const { errors, data } = await getValidatedFormData<SchemaFormData>(
     request,
     resolver,
     true,
   );
   if (errors) {
-    return json({ errors });
+    return { errors };
   }
   // Do something with the data
 };
@@ -250,12 +251,12 @@ The `receivedValues` property allows you to set the default values of your form 
 ```jsx
 /** all the same code from above */
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = async ({ request }: Route.ActionArgs) => {
   // Takes the request from the frontend, parses and validates it and returns the data
   const { errors, data } =
     await getValidatedFormData<FormData>(request, resolver);
   if (errors) {
-    return json({ errors });
+    return { errors };
   }
   // Do something with the data
 };
@@ -266,12 +267,12 @@ If your action returrns `defaultValues` key then it will be automatically used b
 ```jsx
 /** all the same code from above */
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = async ({ request }: Route.ActionArgs) => {
   // Takes the request from the frontend, parses and validates it and returns the data
   const { errors, data, receivedValues: defaultValues } =
     await getValidatedFormData<FormData>(request, resolver);
   if (errors) {
-    return json({ errors, defaultValues });
+    return { errors, defaultValues };
   }
   // Do something with the data
 };
@@ -287,14 +288,14 @@ The difference between `validateFormData` and `getValidatedFormData` is that `va
 ```jsx
 /** all the same code from above */
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = async ({ request }: Route.ActionArgs) => {
   // Lets assume you get the data in a different way here but still want to validate it
   const formData = await yourWayOfGettingFormData(request);
   // Takes the request from the frontend, parses and validates it and returns the data
   const { errors, data } =
     await validateFormData<FormData>(formData, resolver);
   if (errors) {
-    return json({ errors });
+    return { errors };
   }
   // Do something with the data
 };
@@ -335,7 +336,7 @@ parseFormData is a utility function that can be used to parse the data submitted
 ```jsx
 /** all the same code from above */
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = async ({ request }: Route.ActionArgs) => {
   // Allows you to get the data from the request object without having to validate it
   const formData = await parseFormData(request);
   // formData.age will be a number
