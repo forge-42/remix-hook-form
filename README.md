@@ -232,6 +232,41 @@ you need to know about form handling in React Router/Remix. It also covers how t
 https://youtu.be/iom5nnj29sY?si=l52WRE2bqpkS2QUh
 
 
+## Middleware mode
+
+From v7 you can use middleware to extract the form data and access it anywhere in your actions and loaders.  
+All you have to do is set it up in your `root.tsx` file like this:
+
+```ts
+import { unstable_extractFormDataMiddleware } from "remix-hook-form/middleware";
+
+export const unstable_middleware = [unstable_extractFormDataMiddleware()];
+```
+
+
+And then access it in your actions and loaders like this:
+
+
+```ts
+import { getFormData, getValidatedFormData } from "remix-hook-form/middleware";
+
+export const loader = async ({ context }: LoaderFunctionArgs) => {
+  const searchParamsFormData = await getFormData(context); 
+  return { result: "success" };
+};
+export const action = async ({ context }: ActionFunctionArgs) => {
+  // OR:   const formData = await getFormData(context); 
+  const { data, errors, receivedValues } = await getValidatedFormData<FormData>(
+    context,
+    resolver,
+  );
+  if (errors) {
+    return { errors, receivedValues };
+  } 
+  return { result: "success" };
+};
+```
+
 ## API's
 
 ### getValidatedFormData
@@ -346,6 +381,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
 };
 
 ```
+
 
 ### getFormDataFromSearchParams
 

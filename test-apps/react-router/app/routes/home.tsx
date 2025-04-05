@@ -8,9 +8,9 @@ import {
 import {
   RemixFormProvider,
   getFormDataFromSearchParams,
-  getValidatedFormData,
   useRemixForm,
 } from "remix-hook-form";
+import { getFormData, getValidatedFormData } from "remix-hook-form/middleware";
 import { z } from "zod";
 
 const FormDataZodSchema = z.object({
@@ -24,35 +24,23 @@ const FormDataZodSchema = z.object({
 });
 
 const resolver = zodResolver(FormDataZodSchema);
-export const loader = ({ request }: LoaderFunctionArgs) => {
-  const data = getFormDataFromSearchParams(request);
+type FormData = z.infer<typeof FormDataZodSchema>;
+
+export const loader = async ({ context }: LoaderFunctionArgs) => {
+  const searchParamsFormData = await getFormData(context);
   return { result: "success" };
 };
-export const action = async ({ request }: ActionFunctionArgs) => {
-  const {
-    errors,
-    data: formData,
-    receivedValues,
-  } = await getValidatedFormData<z.infer<typeof FormDataZodSchema>>(
-    request,
+export const action = async ({ context }: ActionFunctionArgs) => {
+  const { data, errors, receivedValues } = await getValidatedFormData<FormData>(
+    context,
     resolver,
   );
-
   if (errors) {
-    return data(errors, {
-      status: 422,
-    });
+    return { errors, receivedValues };
   }
+  return { result: "success" };
+};
 
-  console.log(formData);
-  return { result: "success" };
-};
-export const clientAction = async ({
-  request,
-  serverAction,
-}: ClientActionFunctionArgs) => {
-  return { result: "success" };
-};
 export default function Index() {
   const fetcher = useFetcher();
   const methods = useRemixForm({
@@ -67,9 +55,8 @@ export default function Index() {
       boolean: true,
       null: null,
     },
-    submitData: {
-      test: "test",
-    },
+
+    submitData: { test: "test" },
   });
   const { register, handleSubmit, formState, watch, setError } = methods;
 
@@ -77,15 +64,11 @@ export default function Index() {
   return (
     <RemixFormProvider {...methods}>
       <p>Add a thing...</p>
-      <Form
-        method="PATCH"
-        action="/?index"
-        encType="multipart/form-data"
-        onSubmit={handleSubmit}
-      >
+      <Form method="POST" encType="multipart/form-data" onSubmit={handleSubmit}>
         <label>
           Boolean
           <input type="checkbox" {...register("boolean")} />
+          {formState.errors.boolean?.message}
         </label>
         <label>
           number
@@ -93,7 +76,7 @@ export default function Index() {
         </label>
 
         <div>
-          <button type="submit" className="button">
+          <button formMethod="post" type="submit" className="button">
             Add
           </button>
         </div>

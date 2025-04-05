@@ -91,16 +91,8 @@ export const isGet = (request: Pick<Request, "method">) =>
   request.method === "GET" || request.method === "get";
 
 type ReturnData<T extends FieldValues> =
-  | {
-      data: T;
-      errors: undefined;
-      receivedValues: Partial<T>;
-    }
-  | {
-      data: undefined;
-      errors: FieldErrors<T>;
-      receivedValues: Partial<T>;
-    };
+  | { data: T; errors: undefined; receivedValues: Partial<T> }
+  | { data: undefined; errors: FieldErrors<T>; receivedValues: Partial<T> };
 /**
  * Parses the data from an HTTP request and validates it against a schema. Works in both loaders and actions, in loaders it extracts the data from the search params.
  * In actions it extracts it from request formData.
@@ -112,14 +104,28 @@ export const getValidatedFormData = async <T extends FieldValues>(
   resolver: Resolver<T>,
   preserveStringified = false,
 ): Promise<ReturnData<T>> => {
+  const { receivedValues } = await getFormData<T>(request, preserveStringified);
+
+  const data = await validateFormData<T>(receivedValues, resolver);
+
+  return { ...data, receivedValues };
+};
+
+/**
+ * Parses the data from an HTTP request depending on the request method and returns the parsed form data.
+ *
+ * @returns A Promise that resolves to an object containing the data
+ */
+export const getFormData = async <T extends FieldValues>(
+  request: Request | FormData,
+  preserveStringified = false,
+) => {
   const receivedValues =
     "url" in request && isGet(request)
       ? getFormDataFromSearchParams<T>(request, preserveStringified)
       : await parseFormData<T>(request, preserveStringified);
 
-  const data = await validateFormData<T>(receivedValues, resolver);
-
-  return { ...data, receivedValues };
+  return { receivedValues };
 };
 
 /**

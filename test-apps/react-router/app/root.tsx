@@ -1,14 +1,19 @@
 import {
-  isRouteErrorResponse,
   Links,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
+  isRouteErrorResponse,
 } from "react-router";
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import { unstable_extractFormDataMiddleware } from "remix-hook-form/middleware";
+
+export const loader = ({ context }: Route.LoaderArgs) => {
+  return null;
+};
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -45,11 +50,13 @@ export default function App() {
   return <Outlet />;
 }
 
+export const unstable_middleware = [unstable_extractFormDataMiddleware()];
+
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   let message = "Oops!";
   let details = "An unexpected error occurred.";
   let stack: string | undefined;
-
+  console.log(error);
   if (isRouteErrorResponse(error)) {
     message = error.status === 404 ? "404" : "Error";
     details =
