@@ -90,23 +90,23 @@ export const getFormDataFromSearchParams = <T extends FieldValues>(
 export const isGet = (request: Pick<Request, "method">) =>
   request.method === "GET" || request.method === "get";
 
-type ReturnData<T extends FieldValues> =
-  | { data: T; errors: undefined; receivedValues: Partial<T> }
-  | { data: undefined; errors: FieldErrors<T>; receivedValues: Partial<T> };
+type ReturnData<TFieldValues extends FieldValues, TTransformedValues = TFieldValues> =
+  | { data: TTransformedValues; errors: undefined; receivedValues: Partial<TFieldValues> }
+  | { data: undefined; errors: FieldErrors<TFieldValues>; receivedValues: Partial<TFieldValues> };
 /**
  * Parses the data from an HTTP request and validates it against a schema. Works in both loaders and actions, in loaders it extracts the data from the search params.
  * In actions it extracts it from request formData.
  *
  * @returns A Promise that resolves to an object containing the validated data or any errors that occurred during validation.
  */
-export const getValidatedFormData = async <T extends FieldValues>(
+export const getValidatedFormData = async <TFieldValues extends FieldValues, TContext = any, TTransformedValues = TFieldValues>(
   request: Request | FormData,
-  resolver: Resolver<T>,
+  resolver: Resolver<TFieldValues, TContext, TTransformedValues>,
   preserveStringified = false,
-): Promise<ReturnData<T>> => {
-  const { receivedValues } = await getFormData<T>(request, preserveStringified);
+): Promise<ReturnData<TFieldValues, TTransformedValues>> => {
+  const { receivedValues } = await getFormData<TFieldValues>(request, preserveStringified);
 
-  const data = await validateFormData<T>(receivedValues, resolver);
+  const data = await validateFormData(receivedValues, resolver);
 
   return { ...data, receivedValues };
 };
@@ -134,24 +134,24 @@ export const getFormData = async <T extends FieldValues>(
  * @param resolver Schema to validate and cast the data with
  * @returns Returns the validated data if successful, otherwise returns the error object
  */
-export const validateFormData = async <T extends FieldValues>(
+export const validateFormData = async <TFieldValues extends FieldValues, TContext extends any, TTransformedValues = TFieldValues>(
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   data: any,
-  resolver: Resolver<T>,
+  resolver: Resolver<TFieldValues, TContext, TTransformedValues>,
 ) => {
   const dataToValidate =
     data instanceof FormData ? Object.fromEntries(data) : data;
   const { errors, values } = await resolver(
     dataToValidate,
-    {},
+    {} as TContext,
     { shouldUseNativeValidation: false, fields: {} },
   );
 
   if (Object.keys(errors).length > 0) {
-    return { errors: errors as FieldErrors<T>, data: undefined };
+    return { errors: errors as FieldErrors<TFieldValues>, data: undefined };
   }
 
-  return { errors: undefined, data: values as T };
+  return { errors: undefined, data: values as TTransformedValues };
 };
 /**
   Creates a new instance of FormData with the specified data and key.
