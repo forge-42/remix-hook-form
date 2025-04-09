@@ -36,12 +36,21 @@ export function unstable_extractFormDataMiddleware({
 export const getFormData = (context: unstable_RouterContextProvider) =>
   context.get(formDataContext);
 
-export const getValidatedFormData = async <T extends FieldValues>(
+export const getValidatedFormData = async <
+  TFieldValues extends FieldValues,
+  // biome-ignore lint/suspicious/noExplicitAny: defaults to any type
+  TContext = any,
+  TTransformedValues = TFieldValues,
+>(
   context: unstable_RouterContextProvider,
-  resolver: Resolver<T>,
+  resolver: Resolver<TFieldValues, TContext, TTransformedValues>,
 ) => {
   const formData = context.get(formDataContext);
-  const data = await validateFormData(formData, resolver);
+  const data = await validateFormData<
+    TFieldValues,
+    TContext,
+    TTransformedValues
+  >(formData, resolver);
   /* if (errors) {
     throw dataFn(
       { errors, receivedValues: formData },

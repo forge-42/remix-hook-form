@@ -37,11 +37,15 @@ import { createFormData } from "../utilities";
 
 export type SubmitFunctionOptions = Parameters<SubmitFunction>[1];
 
-export interface UseRemixFormOptions<T extends FieldValues>
-  extends UseFormProps<T> {
+export interface UseRemixFormOptions<
+  TFieldValues extends FieldValues,
+  // biome-ignore lint/suspicious/noExplicitAny: defaults to any type
+  TContext = any,
+  TTransformedValues = TFieldValues,
+> extends UseFormProps<TFieldValues, TContext, TTransformedValues> {
   submitHandlers?: {
-    onValid?: SubmitHandler<T>;
-    onInvalid?: SubmitErrorHandler<T>;
+    onValid?: SubmitHandler<TTransformedValues>;
+    onInvalid?: SubmitErrorHandler<TFieldValues>;
   };
   submitConfig?: SubmitFunctionOptions;
   submitData?: FieldValues;
@@ -51,15 +55,19 @@ export interface UseRemixFormOptions<T extends FieldValues>
    */
   stringifyAllValues?: boolean;
 }
-
-export const useRemixForm = <T extends FieldValues>({
+export const useRemixForm = <
+  TFieldValues extends FieldValues,
+  // biome-ignore lint/suspicious/noExplicitAny: defaults to any type
+  TContext = any,
+  TTransformedValues = TFieldValues,
+>({
   submitHandlers,
   submitConfig,
   submitData,
   fetcher,
   stringifyAllValues = true,
   ...formProps
-}: UseRemixFormOptions<T>) => {
+}: UseRemixFormOptions<TFieldValues, TContext, TTransformedValues>) => {
   const [isSubmittedSuccessfully, setIsSubmittedSuccessfully] = useState(false);
   const basename = useHref("/");
   const actionSubmit = useSubmit();
@@ -67,7 +75,7 @@ export const useRemixForm = <T extends FieldValues>({
   const submit = fetcher?.submit ?? actionSubmit;
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   const data: any = fetcher?.data ?? actionData;
-  const methods = useForm<T>({ ...formProps, errors: data?.errors });
+  const methods = useForm({ ...formProps, errors: data?.errors });
   const navigation = useNavigation();
   // Either it's submitted to an action or submitted to a fetcher (or neither)
   const isSubmittingForm = useMemo(
@@ -92,7 +100,7 @@ export const useRemixForm = <T extends FieldValues>({
   const onSubmit = useMemo(
     () =>
       (
-        data: T,
+        data: TTransformedValues,
         // biome-ignore lint/suspicious/noExplicitAny: <explanation>
         e: any,
         formEncType?: FormEncType,
@@ -125,7 +133,7 @@ export const useRemixForm = <T extends FieldValues>({
 
   // React-hook-form uses lazy property getters to avoid re-rendering when properties
   // that aren't being used change. Using getters here preservers that lazy behavior.
-  const formState: FormState<T> = useMemo(
+  const formState: FormState<TFieldValues> = useMemo(
     () => ({
       get isDirty() {
         return methods.formState.isDirty;
@@ -175,7 +183,7 @@ export const useRemixForm = <T extends FieldValues>({
   const reset = useMemo(
     () =>
       (
-        values?: T | DefaultValues<T> | undefined,
+        values?: TFieldValues | DefaultValues<TFieldValues> | undefined,
         options?: KeepStateOptions,
       ) => {
         setIsSubmittedSuccessfully(false);
@@ -187,8 +195,8 @@ export const useRemixForm = <T extends FieldValues>({
   const register = useMemo(
     () =>
       (
-        name: Path<T>,
-        options?: RegisterOptions<T> & {
+        name: Path<TFieldValues>,
+        options?: RegisterOptions<TFieldValues> & {
           disableProgressiveEnhancement?: boolean;
         },
       ) => {
@@ -241,15 +249,25 @@ export const useRemixForm = <T extends FieldValues>({
 
   return hookReturn;
 };
-
-export type UseRemixFormReturn<T extends FieldValues> = UseFormReturn<T> & {
+export type UseRemixFormReturn<
+  TFieldValues extends FieldValues = FieldValues,
+  // biome-ignore lint/suspicious/noExplicitAny: defaults to any type
+  TContext = any,
+  TTransformedValues = TFieldValues,
+> = UseFormReturn<TFieldValues, TContext, TTransformedValues> & {
   handleSubmit: ReturnType<typeof useRemixForm>["handleSubmit"];
   reset: ReturnType<typeof useRemixForm>["reset"];
   register: ReturnType<typeof useRemixForm>["register"];
 };
-
-interface RemixFormProviderProps<T extends FieldValues>
-  extends Omit<UseFormReturn<T>, "handleSubmit" | "reset"> {
+interface RemixFormProviderProps<
+  TFieldValues extends FieldValues = FieldValues,
+  // biome-ignore lint/suspicious/noExplicitAny: defaults to any type
+  TContext = any,
+  TTransformedValues = TFieldValues,
+> extends Omit<
+    UseFormReturn<TFieldValues, TContext, TTransformedValues>,
+    "handleSubmit" | "reset"
+  > {
   children: ReactNode;
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   handleSubmit: any;
@@ -258,20 +276,29 @@ interface RemixFormProviderProps<T extends FieldValues>
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   reset: any;
 }
-export const RemixFormProvider = <T extends FieldValues>({
+export const RemixFormProvider = <
+  TFieldValues extends FieldValues = FieldValues,
+  // biome-ignore lint/suspicious/noExplicitAny: defaults to any type
+  TContext = any,
+  TTransformedValues = TFieldValues,
+>({
   children,
   ...props
-}: RemixFormProviderProps<T>) => {
+}: RemixFormProviderProps<TFieldValues, TContext, TTransformedValues>) => {
   return <FormProvider {...props}>{children}</FormProvider>;
 };
-
-export const useRemixFormContext = <T extends FieldValues>() => {
-  const methods = useFormContext<T>();
+export const useRemixFormContext = <
+  TFieldValues extends FieldValues,
+  // biome-ignore lint/suspicious/noExplicitAny: defaults to any type
+  TContext = any,
+  TTransformedValues = TFieldValues,
+>() => {
+  const methods = useFormContext<TFieldValues, TContext, TTransformedValues>();
   return {
     ...methods,
     // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     handleSubmit: methods.handleSubmit as any as ReturnType<
-      UseFormHandleSubmit<T>
+      UseFormHandleSubmit<TFieldValues, TTransformedValues>
     >,
   };
 };
