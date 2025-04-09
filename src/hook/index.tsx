@@ -37,8 +37,12 @@ import { createFormData } from "../utilities";
 
 export type SubmitFunctionOptions = Parameters<SubmitFunction>[1];
 
-export interface UseRemixFormOptions<TFieldValues extends FieldValues, TContext = any, TTransformedValues = TFieldValues>
-  extends UseFormProps<TFieldValues, TContext, TTransformedValues> {
+export interface UseRemixFormOptions<
+  TFieldValues extends FieldValues,
+  // biome-ignore lint/suspicious/noExplicitAny: defaults to any type
+  TContext = any,
+  TTransformedValues = TFieldValues,
+> extends UseFormProps<TFieldValues, TContext, TTransformedValues> {
   submitHandlers?: {
     onValid?: SubmitHandler<TTransformedValues>;
     onInvalid?: SubmitErrorHandler<TFieldValues>;
@@ -51,8 +55,12 @@ export interface UseRemixFormOptions<TFieldValues extends FieldValues, TContext 
    */
   stringifyAllValues?: boolean;
 }
-
-export const useRemixForm = <TFieldValues extends FieldValues, TContext = any, TTransformedValues = TFieldValues>({
+export const useRemixForm = <
+  TFieldValues extends FieldValues,
+  // biome-ignore lint/suspicious/noExplicitAny: defaults to any type
+  TContext = any,
+  TTransformedValues = TFieldValues,
+>({
   submitHandlers,
   submitConfig,
   submitData,
@@ -74,7 +82,7 @@ export const useRemixForm = <TFieldValues extends FieldValues, TContext = any, T
     () =>
       Boolean(
         (navigation.state !== "idle" && navigation.formData !== undefined) ||
-        (fetcher?.state !== "idle" && fetcher?.formData !== undefined),
+          (fetcher?.state !== "idle" && fetcher?.formData !== undefined),
       ),
     [navigation.state, navigation.formData, fetcher?.state, fetcher?.formData],
   );
@@ -121,7 +129,7 @@ export const useRemixForm = <TFieldValues extends FieldValues, TContext = any, T
   );
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  const onInvalid = useMemo(() => () => { }, []);
+  const onInvalid = useMemo(() => () => {}, []);
 
   // React-hook-form uses lazy property getters to avoid re-rendering when properties
   // that aren't being used change. Using getters here preservers that lazy behavior.
@@ -241,15 +249,25 @@ export const useRemixForm = <TFieldValues extends FieldValues, TContext = any, T
 
   return hookReturn;
 };
-
-export type UseRemixFormReturn<TFieldValues extends FieldValues = FieldValues, TContext = any, TTransformedValues = TFieldValues> = UseFormReturn<TFieldValues, TContext, TTransformedValues> & {
+export type UseRemixFormReturn<
+  TFieldValues extends FieldValues = FieldValues,
+  // biome-ignore lint/suspicious/noExplicitAny: defaults to any type
+  TContext = any,
+  TTransformedValues = TFieldValues,
+> = UseFormReturn<TFieldValues, TContext, TTransformedValues> & {
   handleSubmit: ReturnType<typeof useRemixForm>["handleSubmit"];
   reset: ReturnType<typeof useRemixForm>["reset"];
   register: ReturnType<typeof useRemixForm>["register"];
 };
-
-interface RemixFormProviderProps<TFieldValues extends FieldValues = FieldValues, TContext = any, TTransformedValues = TFieldValues>
-  extends Omit<UseFormReturn<TFieldValues, TContext, TTransformedValues>, "handleSubmit" | "reset"> {
+interface RemixFormProviderProps<
+  TFieldValues extends FieldValues = FieldValues,
+  // biome-ignore lint/suspicious/noExplicitAny: defaults to any type
+  TContext = any,
+  TTransformedValues = TFieldValues,
+> extends Omit<
+    UseFormReturn<TFieldValues, TContext, TTransformedValues>,
+    "handleSubmit" | "reset"
+  > {
   children: ReactNode;
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   handleSubmit: any;
@@ -258,14 +276,23 @@ interface RemixFormProviderProps<TFieldValues extends FieldValues = FieldValues,
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   reset: any;
 }
-export const RemixFormProvider = <TFieldValues extends FieldValues = FieldValues, TContext = any, TTransformedValues = TFieldValues>({
+export const RemixFormProvider = <
+  TFieldValues extends FieldValues = FieldValues,
+  // biome-ignore lint/suspicious/noExplicitAny: defaults to any type
+  TContext = any,
+  TTransformedValues = TFieldValues,
+>({
   children,
   ...props
 }: RemixFormProviderProps<TFieldValues, TContext, TTransformedValues>) => {
   return <FormProvider {...props}>{children}</FormProvider>;
 };
-
-export const useRemixFormContext = <TFieldValues extends FieldValues, TContext = any, TTransformedValues = TFieldValues>() => {
+export const useRemixFormContext = <
+  TFieldValues extends FieldValues,
+  // biome-ignore lint/suspicious/noExplicitAny: defaults to any type
+  TContext = any,
+  TTransformedValues = TFieldValues,
+>() => {
   const methods = useFormContext<TFieldValues, TContext, TTransformedValues>();
   return {
     ...methods,
