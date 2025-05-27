@@ -9,7 +9,6 @@ import {
 import { RemixFormProvider, useRemixForm, useRemixFormContext } from "./index";
 import React from "react";
 import { useFetcher, type Navigation } from "@remix-run/react";
-import { object } from "zod";
 
 const submitMock = vi.fn();
 const fetcherSubmitMock = vi.fn();
