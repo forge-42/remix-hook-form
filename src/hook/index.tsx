@@ -67,14 +67,24 @@ export const useRemixForm = <T extends FieldValues>({
   const methods = useForm<T>({ ...formProps, errors: data?.errors });
   const navigation = useNavigation();
   // Either it's submitted to an action or submitted to a fetcher (or neither)
-  const isSubmittingForm = useMemo(
-    () =>
-      Boolean(
-        (navigation.state !== "idle" && navigation.formData !== undefined) ||
-          (fetcher?.state !== "idle" && fetcher?.formData !== undefined),
-      ),
-    [navigation.state, navigation.formData, fetcher?.state, fetcher?.formData],
-  );
+  const isSubmittingForm = useMemo(() => {
+    const navigationIsSubmitting =
+      navigation.state !== "idle" &&
+      (navigation.formData ?? navigation.json) !== undefined;
+
+    const fetcherIsSubmitting =
+      fetcher?.state !== "idle" &&
+      (fetcher?.formData ?? fetcher?.json) !== undefined;
+
+    return navigationIsSubmitting || fetcherIsSubmitting;
+  }, [
+    navigation.state,
+    navigation.formData,
+    navigation.json,
+    fetcher?.state,
+    fetcher?.formData,
+    fetcher?.json,
+  ]);
 
   // A state to keep track whether we're actually submitting the form through the network
   const [isSubmittingNetwork, setIsSubmittingNetwork] = useState(false);
