@@ -16,9 +16,10 @@ const fetcherSubmitMock = vi.fn();
 const useActionDataMock = vi.hoisted(() => vi.fn());
 
 const useNavigationMock = vi.hoisted(() =>
-  vi.fn<() => Pick<Navigation, "state" | "formData">>(() => ({
+  vi.fn<() => Pick<Navigation, "state" | "formData" | "json">>(() => ({
     state: "idle",
     formData: undefined,
+    json: undefined,
   })),
 );
 
@@ -249,12 +250,70 @@ describe("useRemixForm", () => {
     useNavigationMock.mockReturnValue({
       state: "submitting",
       formData: new FormData(),
+      json: undefined,
     });
     rerender();
 
     expect(result.current.formState.isSubmitting).toBe(true);
 
-    useNavigationMock.mockReturnValue({ state: "idle", formData: undefined });
+    useNavigationMock.mockReturnValue({
+      state: "idle",
+      formData: undefined,
+      json: undefined,
+    });
+    rerender();
+
+    expect(result.current.formState.isSubmitting).toBe(false);
+  });
+
+  it("should reset isSubmitting when the form is submitted using encType: application/json", async () => {
+    submitMock.mockReset();
+    useNavigationMock.mockClear();
+
+    const { result, rerender } = renderHook(() =>
+      useRemixForm({
+        resolver: () => ({ values: {}, errors: {} }),
+        submitConfig: {
+          action: "/submit",
+          encType: "application/json",
+        },
+      }),
+    );
+
+    expect(result.current.formState.isSubmitting).toBe(false);
+
+    act(() => {
+      result.current.handleSubmit({} as any);
+    });
+    expect(result.current.formState.isSubmitting).toBe(true);
+
+    await waitFor(() => expect(submitMock).toHaveBeenCalledTimes(1));
+
+    expect(result.current.formState.isSubmitting).toBe(true);
+
+    expect(submitMock).toHaveBeenCalledWith(
+      {},
+      {
+        method: "post",
+        action: "/submit",
+        encType: "application/json",
+      },
+    );
+
+    useNavigationMock.mockReturnValue({
+      state: "submitting",
+      formData: undefined,
+      json: {},
+    });
+    rerender();
+
+    expect(result.current.formState.isSubmitting).toBe(true);
+
+    useNavigationMock.mockReturnValue({
+      state: "idle",
+      formData: undefined,
+      json: undefined,
+    });
     rerender();
 
     expect(result.current.formState.isSubmitting).toBe(false);
