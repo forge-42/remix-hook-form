@@ -21,6 +21,12 @@ export const generateFormData = (
   formData: FormData | URLSearchParams,
   preserveStringified = false,
 ) => {
+  // First pass: Count occurrences of each key to handle single variable name for arrays.
+  const keyCount: Record<string, number> = {};
+  for (const [key] of formData.entries()) {
+    keyCount[key] = (keyCount[key] || 0) + 1;
+  }
+  // Second pass: Build the output object
   // Initialize an empty output object.
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   const outputObject: Record<any, any> = {};
@@ -29,51 +35,62 @@ export const generateFormData = (
   for (const [key, value] of formData.entries()) {
     // Try to convert data to the original type, otherwise return the original value
     const data = preserveStringified ? value : tryParseJSON(value);
-    // Split the key into an array of parts.
-    const keyParts = key.split(".");
-    // Initialize a variable to point to the current object in the output object.
-    let currentObject = outputObject;
-
-    // Iterate through each key part except for the last one.
-    for (let i = 0; i < keyParts.length - 1; i++) {
-      // Get the current key part.
-      const keyPart = keyParts[i];
-      // If the current object doesn't have a property with the current key part,
-      // initialize it as an object or array depending on whether the next key part is a valid integer index or not.
-      if (!currentObject[keyPart]) {
-        currentObject[keyPart] = /^\d+$/.test(keyParts[i + 1]) ? [] : {};
+    // Simple way to iterate form keys and append to either value or array.
+    if (key.split(".").length === 1) {
+      const isArray = keyCount[key] > 1;
+      if (isArray) {
+        if (!outputObject[key]) {
+          outputObject[key] = [];
+        }
+        outputObject[key].push(data);
+      } else {
+        outputObject[key] = data;
       }
-      // Move the current object pointer to the next level of the output object.
-      currentObject = currentObject[keyPart];
-    }
-
-    // Get the last key part.
-    const lastKeyPart = keyParts[keyParts.length - 1];
-    const lastKeyPartIsArray = /\[\d*\]$|\[\]$/.test(lastKeyPart);
-
-    // Handles array[] or array[0] cases
-    if (lastKeyPartIsArray) {
-      const key = lastKeyPart.replace(/\[\d*\]$|\[\]$/, "");
-      if (!currentObject[key]) {
-        currentObject[key] = [];
+    } else {
+      // Split the key into an array of parts.
+      const keyParts = key.split(".");
+      // Initialize a variable to point to the current object in the output object.
+      let currentObject = outputObject;
+      // Iterate through each key part except for the last one.
+      for (let i = 0; i < keyParts.length - 1; i++) {
+        // Get the current key part.
+        const keyPart = keyParts[i];
+        // If the current object doesn't have a property with the current key part,
+        // initialize it as an object or array depending on whether the next key part is a valid integer index or not.
+        if (!currentObject[keyPart]) {
+          currentObject[keyPart] = /^\d+$/.test(keyParts[i + 1]) ? [] : {};
+        }
+        // Move the current object pointer to the next level of the output object.
+        currentObject = currentObject[keyPart];
       }
 
-      currentObject[key].push(data);
-    }
+      // Get the last key part.
+      const lastKeyPart = keyParts[keyParts.length - 1];
+      const lastKeyPartIsArray = /\[\d*\]$|\[\]$/.test(lastKeyPart);
 
-    // Handles array.foo.0 cases
-    if (!lastKeyPartIsArray) {
-      // If the last key part is a valid integer index, push the value to the current array.
-      if (/^\d+$/.test(lastKeyPart)) {
-        currentObject.push(data);
+      // Handles array[] or array[0] cases
+      if (lastKeyPartIsArray) {
+        const key = lastKeyPart.replace(/\[\d*\]$|\[\]$/, "");
+        if (!currentObject[key]) {
+          currentObject[key] = [];
+        }
+
+        currentObject[key].push(data);
       }
-      // Otherwise, set a property on the current object with the last key part and the corresponding value.
-      else {
-        currentObject[lastKeyPart] = data;
+
+      // Handles array.foo.0 cases
+      if (!lastKeyPartIsArray) {
+        // If the last key part is a valid integer index, push the value to the current array.
+        if (/^\d+$/.test(lastKeyPart)) {
+          currentObject.push(data);
+        }
+        // Otherwise, set a property on the current object with the last key part and the corresponding value.
+        else {
+          currentObject[lastKeyPart] = data;
+        }
       }
     }
   }
-
   // Return the output object.
   return outputObject;
 };
