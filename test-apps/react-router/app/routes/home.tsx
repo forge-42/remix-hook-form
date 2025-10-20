@@ -31,6 +31,8 @@ const FormDataZodSchema = z.object({
   date: z.date().or(z.string()),
   null: z.null(),
   files: fileListSchema.optional(),
+  options: z.array(z.string()).optional(),
+  checkboxes: z.array(z.string()).optional(),
 });
 
 const resolver = zodResolver(FormDataZodSchema);
@@ -55,6 +57,8 @@ export const action = async ({ context }: ActionFunctionArgs) => {
     data.files?.map((file: File) => file.name).join(", "),
   );
 
+  console.log("Selected options:", data.options);
+
   return { result: "success" };
 };
 
@@ -72,6 +76,8 @@ export default function Index() {
       boolean: true,
       null: null,
       files: undefined,
+      options: undefined,
+      checkboxes: undefined,
     },
 
     submitData: { test: "test" },
@@ -97,6 +103,46 @@ export default function Index() {
           Multiple Files
           <input type="file" {...register("files")} multiple />
           {formState.errors.files?.message}
+        </label>
+        <label>
+          Selected Options
+          <select {...register("options")} multiple>
+            <option value="option1">Option 1</option>
+            <option value="option2">Option 2</option>
+            <option value="option3">Option 3</option>
+          </select>
+          {formState.errors.options?.message}
+        </label>
+        <label>
+          Checkboxes
+          <fieldset>
+            <legend>Select your preferences:</legend>
+            <label>
+              <input
+                type="checkbox"
+                value="preference1"
+                {...register("checkboxes")}
+              />
+              Preference 1
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                value="preference2"
+                {...register("checkboxes")}
+              />
+              Preference 2
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                value="preference3"
+                {...register("checkboxes")}
+              />{" "}
+              Preference 3
+            </label>
+          </fieldset>
+          {formState.errors.checkboxes?.message}
         </label>
 
         <div>
