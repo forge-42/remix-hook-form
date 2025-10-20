@@ -77,7 +77,7 @@ export const generateFormData = (
       }
       // Otherwise, set a property on the current object with the last key part and the corresponding value.
       else {
-        if (keyCount > 0) {
+        if (keyCount > 1) {
           if (!currentObject[key]) {
             currentObject[key] = [];
           }
