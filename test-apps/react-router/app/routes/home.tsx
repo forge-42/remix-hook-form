@@ -13,6 +13,15 @@ import {
 import { getFormData, getValidatedFormData } from "remix-hook-form/middleware";
 import { z } from "zod";
 
+const fileListSchema = z.any().refine((files) => {
+  return (
+    typeof files === "object" &&
+    Symbol.iterator in files &&
+    !Array.isArray(files) &&
+    Array.from(files).every((file: any) => file instanceof File)
+  );
+});
+
 const FormDataZodSchema = z.object({
   email: z.string().trim().nonempty("validation.required"),
   password: z.string().trim().nonempty("validation.required"),
@@ -21,6 +30,7 @@ const FormDataZodSchema = z.object({
   boolean: z.boolean().optional(),
   date: z.date().or(z.string()),
   null: z.null(),
+  files: fileListSchema.optional(),
 });
 
 const resolver = zodResolver(FormDataZodSchema);
@@ -38,6 +48,13 @@ export const action = async ({ context }: ActionFunctionArgs) => {
   if (errors) {
     return { errors, receivedValues };
   }
+
+  console.log(
+    "File names:",
+    // since files is of type "any", we need to assert its type here
+    data.files?.map((file: File) => file.name).join(", "),
+  );
+
   return { result: "success" };
 };
 
@@ -54,6 +71,7 @@ export default function Index() {
       date: new Date(),
       boolean: true,
       null: null,
+      files: undefined,
     },
 
     submitData: { test: "test" },
@@ -73,6 +91,12 @@ export default function Index() {
         <label>
           number
           <input type="number" {...register("number")} />
+          {formState.errors.number?.message}
+        </label>
+        <label>
+          Multiple Files
+          <input type="file" {...register("files")} multiple />
+          {formState.errors.files?.message}
         </label>
 
         <div>
