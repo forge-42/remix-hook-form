@@ -140,7 +140,7 @@ describe("parseFormData", () => {
     mockFormData.append("files", blob);
     mockFormData.append("files", blob);
     requestFormDataSpy.mockResolvedValueOnce(mockFormData);
-    const data = await parseFormData<{ files[]: Blob }>(request);
+    const data = await parseFormData<{ files: Blob[] }>(request);
     expect(data.files).toBeTypeOf("object");
     expect(Array.isArray(data.files)).toBe(true);
     expect(data.files).toHaveLength(2);

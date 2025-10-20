@@ -26,8 +26,8 @@ export const generateFormData = (
   const outputObject: Record<any, any> = {};
 
   // See if a key is repeated, and then handle that in a special case
-  const keyCounts: Records<string, number} = {};
-  for (const [key, value] of formData.entries()) {
+  const keyCounts: Record<string, number> = {};
+  for (const key of formData.keys()) {
     keyCounts[key] = (keyCounts[key] ?? 0) + 1;
   }
 
