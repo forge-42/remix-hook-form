@@ -25,8 +25,17 @@ export const generateFormData = (
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   const outputObject: Record<any, any> = {};
 
+  // See if a key is repeated, and then handle that in a special case
+  const keyCounts: Records<string, number} = {};
+  for (const [key, value] of formData.entries()) {
+    keyCounts[key] = (keyCounts[key] ?? 0) + 1;
+  }
+
   // Iterate through each key-value pair in the form data.
   for (const [key, value] of formData.entries()) {
+    // Get the current key's count
+    const keyCount = keyCounts[key];
+
     // Try to convert data to the original type, otherwise return the original value
     const data = preserveStringified ? value : tryParseJSON(value);
     // Split the key into an array of parts.
@@ -60,16 +69,22 @@ export const generateFormData = (
 
       currentObject[key].push(data);
     }
-
     // Handles array.foo.0 cases
-    if (!lastKeyPartIsArray) {
+    else {
       // If the last key part is a valid integer index, push the value to the current array.
       if (/^\d+$/.test(lastKeyPart)) {
         currentObject.push(data);
       }
       // Otherwise, set a property on the current object with the last key part and the corresponding value.
       else {
-        currentObject[lastKeyPart] = data;
+        if (keyCount > 0) {
+          if (!currentObject[key]) {
+            currentObject[key] = [];
+          }
+          currentObject[key].push(data);
+        } else {
+          currentObject[lastKeyPart] = data;
+        }
       }
     }
   }
