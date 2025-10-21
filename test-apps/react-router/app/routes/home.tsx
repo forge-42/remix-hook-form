@@ -13,6 +13,15 @@ import {
 import { getFormData, getValidatedFormData } from "remix-hook-form/middleware";
 import { z } from "zod";
 
+const fileListSchema = z.any().refine((files) => {
+  return (
+    typeof files === "object" &&
+    Symbol.iterator in files &&
+    !Array.isArray(files) &&
+    Array.from(files).every((file: any) => file instanceof File)
+  );
+});
+
 const FormDataZodSchema = z.object({
   email: z.string().trim().nonempty("validation.required"),
   password: z.string().trim().nonempty("validation.required"),
@@ -21,6 +30,9 @@ const FormDataZodSchema = z.object({
   boolean: z.boolean().optional(),
   date: z.date().or(z.string()),
   null: z.null(),
+  files: fileListSchema.optional(),
+  options: z.array(z.string()).optional(),
+  checkboxes: z.array(z.string()).optional(),
 });
 
 const resolver = zodResolver(FormDataZodSchema);
@@ -38,6 +50,15 @@ export const action = async ({ context }: ActionFunctionArgs) => {
   if (errors) {
     return { errors, receivedValues };
   }
+
+  console.log(
+    "File names:",
+    // since files is of type "any", we need to assert its type here
+    data.files?.map((file: File) => file.name).join(", "),
+  );
+
+  console.log("Selected options:", data.options);
+
   return { result: "success" };
 };
 
@@ -54,6 +75,9 @@ export default function Index() {
       date: new Date(),
       boolean: true,
       null: null,
+      files: undefined,
+      options: undefined,
+      checkboxes: undefined,
     },
 
     submitData: { test: "test" },
@@ -73,6 +97,52 @@ export default function Index() {
         <label>
           number
           <input type="number" {...register("number")} />
+          {formState.errors.number?.message}
+        </label>
+        <label>
+          Multiple Files
+          <input type="file" {...register("files")} multiple />
+          {formState.errors.files?.message}
+        </label>
+        <label>
+          Selected Options
+          <select {...register("options")} multiple>
+            <option value="option1">Option 1</option>
+            <option value="option2">Option 2</option>
+            <option value="option3">Option 3</option>
+          </select>
+          {formState.errors.options?.message}
+        </label>
+        <label>
+          Checkboxes
+          <fieldset>
+            <legend>Select your preferences:</legend>
+            <label>
+              <input
+                type="checkbox"
+                value="preference1"
+                {...register("checkboxes")}
+              />
+              Preference 1
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                value="preference2"
+                {...register("checkboxes")}
+              />
+              Preference 2
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                value="preference3"
+                {...register("checkboxes")}
+              />{" "}
+              Preference 3
+            </label>
+          </fieldset>
+          {formState.errors.checkboxes?.message}
         </label>
 
         <div>

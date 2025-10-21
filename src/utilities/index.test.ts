@@ -132,6 +132,22 @@ describe("parseFormData", () => {
     });
   });
 
+  it("should handle multiple file input", async () => {
+    const request = new Request("http://localhost:3000");
+    const requestFormDataSpy = vi.spyOn(request, "formData");
+    const blob = new Blob(["Hello, world!"], { type: "text/plain" });
+    const mockFormData = new FormData();
+    mockFormData.append("files", blob);
+    mockFormData.append("files", blob);
+    requestFormDataSpy.mockResolvedValueOnce(mockFormData);
+    const data = await parseFormData<{ files: Blob[] }>(request);
+    expect(data.files).toBeTypeOf("object");
+    expect(Array.isArray(data.files)).toBe(true);
+    expect(data.files).toHaveLength(2);
+    expect(data.files[0]).toBeInstanceOf(File);
+    expect(data.files[1]).toBeInstanceOf(File);
+  });
+
   it("should not throw an error when a file is passed in", async () => {
     const request = new Request("http://localhost:3000");
     const requestFormDataSpy = vi.spyOn(request, "formData");
