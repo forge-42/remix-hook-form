@@ -163,6 +163,9 @@ export const useRemixForm = <
       get isValidating() {
         return methods.formState.isValidating;
       },
+      get isReady() {
+        return methods.formState.isReady;
+      },
       get isValid() {
         return methods.formState.isValid;
       },
