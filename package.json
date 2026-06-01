@@ -56,11 +56,14 @@
     "lint:fix": "npm run lint -- --fix",
     "prettier": "prettier src --check",
     "prettier:fix": "prettier src --write",
-    "format-code": "npm run prettier:fix & npm run lint:fix"
+    "format-code": "npm run prettier:fix & npm run lint:fix",
+    "changeset": "changeset",
+    "changeset:version": "changeset version && npm install --package-lock-only --ignore-scripts",
+    "changeset:publish": "changeset publish"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/forge-42/remix-hook-form.git"
+    "url": "git+https://github.com/code-forge-io/remix-hook-form.git"
   },
   "keywords": [
     "React",
@@ -76,17 +79,18 @@
   "author": "Alem Tuzlak",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/forge-42/remix-hook-form/issues"
+    "url": "https://github.com/code-forge-io/remix-hook-form/issues"
   },
-  "homepage": "https://github.com/forge-42/remix-hook-form#readme",
+  "homepage": "https://github.com/code-forge-io/remix-hook-form#readme",
   "peerDependencies": {
     "react": "^18.2.0 || ^19.0.0",
     "react-dom": "^18.2.0 || ^19.0.0",
     "react-hook-form": "^7.55.0",
     "react-router": ">=7.5.0"
   },
-  "readme": "https://github.com/forge42dev/remix-hook-form#readme",
+  "readme": "https://github.com/code-forge-io/remix-hook-form#readme",
   "devDependencies": {
+    "@changesets/cli": "^2.31.0",
     "@hookform/resolvers": "^3.1.0",
     "@testing-library/react": "^14.0.0",
     "@types/node": "^18.15.11",
