@@ -187,6 +187,9 @@ export const useRemixForm = <
       get errors() {
         return methods.formState.errors;
       },
+      get isReady() {
+        return methods.formState.isReady;
+      },
     }),
     [methods.formState, isSubmittedSuccessfully, isSubmittingNetwork],
   );
