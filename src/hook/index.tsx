@@ -262,16 +262,15 @@ export const useRemixForm = <
 
   return hookReturn;
 };
+// Derived via instantiation expression so TFieldValues flows through correctly.
+// handleSubmit, reset and register have signatures that differ from UseFormReturn,
+// so we capture the real return type rather than intersecting manually.
 export type UseRemixFormReturn<
   TFieldValues extends FieldValues = FieldValues,
   // biome-ignore lint/suspicious/noExplicitAny: defaults to any type
   TContext = any,
   TTransformedValues = TFieldValues,
-> = UseFormReturn<TFieldValues, TContext, TTransformedValues> & {
-  handleSubmit: ReturnType<typeof useRemixForm>["handleSubmit"];
-  reset: ReturnType<typeof useRemixForm>["reset"];
-  register: ReturnType<typeof useRemixForm>["register"];
-};
+> = ReturnType<typeof useRemixForm<TFieldValues, TContext, TTransformedValues>>;
 interface RemixFormProviderProps<
   TFieldValues extends FieldValues = FieldValues,
   // biome-ignore lint/suspicious/noExplicitAny: defaults to any type
